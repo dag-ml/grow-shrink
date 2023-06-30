@@ -3,20 +3,17 @@ title: "Growshrink_Rnotebook"
 output: html_notebook
 ---
 
-This R notebook aims to explore the potential applications of [grow-shrink]( 	
-https://doi.org/10.48550/arXiv.1407.8088) 
+This R notebook aims to explore the potential applications of [grow-shrink](https://doi.org/10.48550/arXiv.1407.8088)
 
 This notebook utilizes the bnlearn library for its implementation of growshrink.
 
 ```{r}
-install.packages("bnlearn")
-install.packages("Rgraphviz")
-
 library(Rgraphviz)
 library(bnlearn)
 ```
 
 Getting the data from csv files stored locally on device
+
 ```{r}
 # Dubee
 path_lsds_15 <- file.choose()
@@ -55,22 +52,20 @@ data_hist_lsds40 <- read.csv(path_hist_lsds_40, header = FALSE)
 data_bone_lsds40 <- read.csv(path_bone_lsds_40, header = FALSE)
 ```
 
-To start
-Convert it to a dataframe.
+To start Convert it to a dataframe.
+
 ```{r}
 data_lsds_15 <- as.data.frame(data_lsds_15)
 
 data_lsds_15
 ```
 
-Looks good!
-Let's run growshrink
+Looks good! Let's run growshrink
+
 ```{r}
 dag <- bnlearn::gs(data_lsds_15)
 
-dag
+graph_dag <- bnlearn::as.graphNEL(dag)
 
-nodes(dag)
-arcs(dag)
+plot(graph_dag)
 ```
-
