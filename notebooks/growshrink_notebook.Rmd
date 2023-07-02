@@ -8,8 +8,9 @@ This R notebook aims to explore the potential applications of [grow-shrink](http
 This notebook utilizes the bnlearn library for its implementation of growshrink.
 
 ```{r}
-library(Rgraphviz)
 library(bnlearn)
+library(dplyr)
+library(Rgraphviz)
 ```
 
 Getting the data from csv files stored locally on device
@@ -17,25 +18,25 @@ Getting the data from csv files stored locally on device
 ```{r}
 # Dubee
 path_lsds_15 <- file.choose()
-data_lsds_15 <- read.csv(path_lsds_15, header = FALSE)
+data_lsds_15 <- read.csv(path_lsds_15, header = FALSE, skip = 1)
 ```
 
 ```{r}
 # Keune 2015
 path_lsds_9 <- file.choose()
-data_lsds_9 <- read.csv(path_lsds_9, header = FALSE)
+data_lsds_9 <- read.csv(path_lsds_9, header = FALSE, skip = 1)
 ```
 
 ```{r}
 # Keune 2016
 path_lsds_30 <- file.choose()
-data_lsds30 <- read.csv(path_lsds_30, header = FALSE)
+data_lsds30 <- read.csv(path_lsds_30, header = FALSE, skip = 1)
 ```
 
 ```{r}
 # Ko 2020 1 of 2
 path_lsds_41 <- file.choose()
-data_lsds41 <- read.csv(path_lsds_41, header = FALSE)
+data_lsds41 <- read.csv(path_lsds_41, header = FALSE, skip = 1)
 ```
 
 ```{r}
@@ -47,24 +48,49 @@ path_hist_lsds_40 <- file.choose()
 # bone
 path_bone_lsds_40 <- file.choose()
 
-data_mct_lsds_40 <- read.csv(path_mct_lsds_40, header = FALSE)
-data_hist_lsds40 <- read.csv(path_hist_lsds_40, header = FALSE)
-data_bone_lsds40 <- read.csv(path_bone_lsds_40, header = FALSE)
+data_mct_lsds_40 <- read.csv(path_mct_lsds_40, header = FALSE, skip = 1)
+data_hist_lsds40 <- read.csv(path_hist_lsds_40, header = FALSE, skip = 1)
+data_bone_lsds40 <- read.csv(path_bone_lsds_40, header = FALSE, skip = 1)
 ```
 
-To start Convert it to a dataframe.
+To start, remove the columns that are not numeric data (uid & filename),
+Cast V3 column's "Baseline, Vivarium, Flight, Ground Control to ints (1-4),
+and then convert it to a dataframe.
 
 ```{r}
-data_lsds_15 <- as.data.frame(data_lsds_15)
+data_lsds_15 <- subset(data_lsds_15, select = -(1:2))
+data_lsds_15$V3 <- as.numeric(factor(data_lsds_15$V3, levels = unique(data_lsds_15$V3)))
+```
 
+```{r}
 data_lsds_15
 ```
 
-Looks good! Let's run growshrink
+
+Looks good! Just remove the first three columns and then let's run growshrink.
 
 ```{r}
 dag <- bnlearn::gs(data_lsds_15)
+```
 
+
+```{r}
+graph_dag <- bnlearn::as.graphNEL(dag)
+
+plot(graph_dag)
+```
+
+Now checking what it looks like without the enumeration of the Factor Value
+```{r}
+data_lsds_15 <- subset(data_lsds_15, select = -(1:1))
+data_lsds_15
+```
+```{r}
+dag <- bnlearn::gs(data_lsds_15)
+```
+
+
+```{r}
 graph_dag <- bnlearn::as.graphNEL(dag)
 
 plot(graph_dag)
