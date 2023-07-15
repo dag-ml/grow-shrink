@@ -104,10 +104,10 @@ They need to be related so our groupings need to be validated and checked by som
 who is much more familiar with bones than the author of this notebook!
 We have a graph that illustrates the nodes from this 2022 publication:
 
-![dag_22](dag_pub.png)
+![dag_22](../references/dag_pub.png)
 The publication laid out the following composite variables
 
-![pca](supplemental_table_pca.png)
+![pca](../references/supplemental_table_pca.png)
 
 ## Transformed CSV File Variables:
 
