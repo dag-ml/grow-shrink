@@ -8,9 +8,10 @@ This R notebook aims to explore the potential applications of [grow-shrink](http
 This notebook utilizes the bnlearn library for its implementation of growshrink.
 
 ```{r}
-library(bnlearn)
 library(dplyr)
+library(bnlearn)
 library(Rgraphviz)
+library(psych)
 ```
 
 Getting the data from csv files stored locally on device
@@ -18,25 +19,25 @@ Getting the data from csv files stored locally on device
 ```{r}
 # Dubee
 path_lsds_15 <- file.choose()
-data_lsds_15 <- read.csv(path_lsds_15, header = FALSE, skip = 1)
+data_lsds_15 <- read.csv(path_lsds_15, header = TRUE)
 ```
 
 ```{r}
 # Keune 2015
 path_lsds_9 <- file.choose()
-data_lsds_9 <- read.csv(path_lsds_9, header = FALSE, skip = 1)
+data_lsds_9 <- read.csv(path_lsds_9, header = TRUE)
 ```
 
 ```{r}
 # Keune 2016
 path_lsds_30 <- file.choose()
-data_lsds30 <- read.csv(path_lsds_30, header = FALSE, skip = 1)
+data_lsds_30 <- read.csv(path_lsds_30, header = TRUE)
 ```
 
 ```{r}
 # Ko 2020 1 of 2
 path_lsds_41 <- file.choose()
-data_lsds41 <- read.csv(path_lsds_41, header = FALSE, skip = 1)
+data_lsds41 <- read.csv(path_lsds_41, header = TRUE)
 ```
 
 ```{r}
@@ -48,26 +49,116 @@ path_hist_lsds_40 <- file.choose()
 # bone
 path_bone_lsds_40 <- file.choose()
 
-data_mct_lsds_40 <- read.csv(path_mct_lsds_40, header = FALSE, skip = 1)
-data_hist_lsds40 <- read.csv(path_hist_lsds_40, header = FALSE, skip = 1)
-data_bone_lsds40 <- read.csv(path_bone_lsds_40, header = FALSE, skip = 1)
+data_mct_lsds_40 <- read.csv(path_mct_lsds_40, header = TRUE)
+data_hist_lsds_40 <- read.csv(path_hist_lsds_40, header = TRUE)
+data_bone_lsds_40 <- read.csv(path_bone_lsds_40, header = TRUE)
 ```
 
-To start, remove the columns that are not numeric data (uid & filename),
-Cast V3 column's "Baseline, Vivarium, Flight, Ground Control to ints (1-4),
-and then convert it to a dataframe.
-
-```{r}
-data_lsds_15 <- subset(data_lsds_15, select = -(1:2))
-data_lsds_15$V3 <- as.numeric(factor(data_lsds_15$V3, levels = unique(data_lsds_15$V3)))
-```
+For this notebook, we will be looking at the Dubee, Keune, and Ko (2/2) datasets.
+These were selected because they were the ones used in the 2022 publication.
+Ko (1/2) was not included because it was taken from living samples over a period of time,
+which is more complicated to validate than the single measurements taken in the mCT data.
 
 ```{r}
 data_lsds_15
 ```
 
+```{r}
+data_lsds_9
+```
 
-Looks good! Just remove the first three columns and then let's run growshrink.
+
+```{r}
+data_lsds_30
+```
+
+```{r}
+data_mct_lsds_40
+```
+
+
+```{r}
+data_hist_lsds_40
+```
+
+
+```{r}
+data_bone_lsds_40
+```
+
+
+To start, remove the columns that are not numeric data (uid & filename)
+```{r}
+data_lsds_15 <- subset(data_lsds_15, select = -(1:2))
+data_lsds_9 <- subset(data_lsds_9, select = -(1:2))
+data_lsds_30 <- subset(data_lsds_30, select = -(1:2))
+data_mct_lsds_40 <- subset(data_mct_lsds_40, select = -(1:2))
+data_hist_lsds_40 <- subset(data_hist_lsds_40, select = -(1:2))
+data_bone_lsds_40 <- subset(data_bone_lsds_40, select = -(1:2))
+```
+
+
+# Composite Variables
+Next we need to group the columns provided in the CSV file into composite variables.
+They need to be related so our groupings need to be validated and checked by someone
+who is much more familiar with bones than the author of this notebook!
+We have a graph that illustrates the nodes from this 2022 publication:
+
+![dag_22](dag_pub.png)
+The publication laid out the following composite variables
+
+![pca](supplemental_table_pca.png)
+
+## Transformed CSV File Variables:
+
+### Bone Formation
+- `Ceased_bone_formation_CeasedBF_percent` (Keune 2016, data_lsds_30)
+- `Mineral_apposition_rate_MAR_micrometers_per_day` (Keune 2016, data_lsds_30)
+- `Mineralized_surface_MS_per_bone_surface_BS_percent` (Ko, data_hist_lsds_40)
+- `Bone_formation_rate_BFR_per_bone_surface_BS_percent` (Ko, data_hist_lsds_40)
+
+### Bone Resorption
+- `Label_length_LL_millimeter_per_millimeters_squared` (Keune 2016, data_lsds30)
+- `Osteoclast_perimeter_OsCperi_percent` (Keune 2016, data_lsds30)
+- `Osteoclast_surface_OcS_per_bone_surface_BS_percent`(Ko, data_hist_lsds_40)
+
+### Bone Mass
+- `trabecular_thickness_mm` (Dubee, data_lsds_15)
+- `percent_bone_volume_bvtv_percent` (Dubee, data_lsds_15)
+- `Bone_volume_BVTV_percent` (Keune 2016, data_lsds30)
+- Bone mineral content (DXA)? (Keune 2015, data_lsds_9)
+- Bone mineral density (DXA)? (Keune 2015, data_lsds_9)
+- `Bone_volume_BV_per_total_volume_TV_mm4_per_mm4` (Ko, data_mct_lsds_40)
+- `Bone_mineral_density_BMD_mg_per_cubed_centimeter` (Ko, data_mct_lsds_40)
+- `Trabecular_number_TbN_one_per_millimeter` (Ko, data_mct_lsds_40)
+
+### Trabecular Architecture
+- `trabecular_number_1_by_mm` (Dubee, data_lsds_15)
+- `trabecular_separation_mm` (Dubee, data_lsds_15)
+- `cancellous_metaphysis_Tb_N_1per_mm` (Keune 2015, data_lsds_9)
+- `cancellous_epiphysis_Tb_N_1per_mm` (Keune 2015, data_lsds_9)
+- `cancellous_epiphysis_Tb_Sp_micrometer` (Keune 2015, data_lsds_9)
+- `cancellous_metaphysis_Tb_Sp_micrometer` (Keune 2015, data_lsds_9)
+- `Trabecular_number_TbN_one_per_millimeter` (Ko, data_mct_lsds_40)
+- `Trabecular_separation_TbSp_millimeter` (Ko, data_mct_lsds_40)
+
+### Bone Strength
+- `maximum_load_N_newtons` (Ko, data_bone_lsds_40)
+- `failure_load_newtons` (Ko, data_bone_lsds_40)
+
+# TODO
+0. Find the columns that map to the DXA data from Keune 2015
+1. Remove columns not specified above
+2. Run PCA using the variables listed above to make composite variable
+3. Adjust the rest of the notebook to use composite variables df
+```{r}
+# 1 Placeholder - Remove columns
+
+# 2 Placeholder - Run PCA to make df_composite
+```
+
+
+Now let's run growshrink on the dataset.
 
 ```{r}
 dag <- bnlearn::gs(data_lsds_15)
