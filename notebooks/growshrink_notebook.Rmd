@@ -175,6 +175,9 @@ For the Ko Dataset, we need to merge the files and handle missing values
 ```{r}
 data_lsds_9
 ```
+```{r}
+data_lsds_15
+```
 
 
 ```{r}
@@ -250,7 +253,10 @@ The publication laid out the following composite variables
 3. Adjust the rest of the notebook to use composite variables df
 ```{r}
 # Dubee
-dubee_gs_input <- data.frame(bone_mass = rep(NA, 37))
+dubee_gs_input <- data.frame(treatment = rep(NA, 37))
+
+# Treatment (Factor Value)
+dubee_gs_input$treatment <- as.factor(data_lsds_15$Factor.Value)
 
 # Bone Mass
 dubee_bone_mass <- data_lsds_15[, c("trabecular_thickness_mm", 
@@ -263,6 +269,7 @@ dubee_tb_arch <- data_lsds_15[, c("trabecular_number_1_by_mm",
                                   "trabecular_separation_mm")]
 dubee_composite_tba <- psych::pca(r = dubee_tb_arch, nfactors = 1, scores = TRUE)
 dubee_gs_input$trabec_arch <- BiocGenerics::as.vector(dubee_composite_tba$scores)
+
 ```
 
 #TODO
@@ -350,6 +357,9 @@ the mct/bone from the hist datasets in Ko due to a large difference in sample si
 ```{r}
 dubee_gs_input
 ```
+
+
+
 ```{r}
 keune_2015_gs_input
 ```
@@ -365,17 +375,38 @@ mct_ko_2_gs_input
 
 ```{r}
 dubee_dag <- bnlearn::gs(dubee_gs_input)
+```
+```{r}
 keune2015_dag <- bnlearn::gs(keune_2015_gs_input)
+```
+```{r}
 keune2016_dag <- bnlearn::gs(keune_2016_gs_input)
+```
+```{r}
 ko_hist_dag <- bnlearn::gs(hist_ko_2_gs_input)
+```
+```{r}
 ko_mct_bone_dag <- bnlearn::gs(hist_ko_2_gs_input)
 ```
 ^^^ Previous cell output needs to be checked after handling TODO items (7/15)
 
 ```{r}
-graph_dag <- bnlearn::as.graphNEL(dag)
+graph_dag <- bnlearn::as.graphNEL(dubee_dag)
 
 plot(graph_dag)
+text(x = 250, y = 500, labels = "Dubee DAG", font = 4)
+
+```
+```{r}
+cex_dubee_dag <- bnlearn::cextend(x = dubee_dag, strict = TRUE)
+graph_dag <- bnlearn::as.graphNEL(cex_dubee_dag)
+
+plot(graph_dag)
+text(x = 250, y = 500, labels = "Consistent extension of Dubee DAG", font = 4)
+```
+Experimenting with leaving string and converting all to factors
+```{r}
+
 ```
 
 Now checking what it looks like without the enumeration of the Factor Value
