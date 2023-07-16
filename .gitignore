@@ -48,6 +48,5 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-# Notebook files for other algorithms
-notebooks/ges_notebook.Rmd
-notebooks/ges_notebook.nb.html
+# data
+data/*

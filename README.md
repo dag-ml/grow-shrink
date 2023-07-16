@@ -18,7 +18,7 @@ You can get started by cloning the repository and running `notebooks/growshrink_
     - [ ] Generalize code for any dataset that meets standards for OSDR's TRANSFORMED datasets
 
 ## Data 🐭
-All data from this project is publicly available through [NASA's Open Science Data Repositories](https://osdr.nasa.gov/bio/)
+All data from this project is publicly available through [NASA's Open Science Data Repositories](https://osdr.nasa.gov/bio/). If you would like to automate the use of data please download the following CSV files and place them in a directory called `data/` on the same level as the `notebooks/` directory. The notebook will use this structure to load the files relatively from the R Notebook file for you. Otherwise, you will be prompted to load the files through a file explorer.
 - [Quantifying Cancellous Bone Structural Changes in Microgravity: Axial Skeleton Results from the RR-1 Mission](https://doi.org/10.26030/8wja-w380) (Dubeé, 2022)
 - [Effects of Spaceflight on Bone Microarchitecture in the Axial and Appendicular Skeleton in Growing Ovariectomized Rats from STS-62](https://doi.org/10.26030/cztm-cx29) (Keune, 2015)
 - [Spaceflight-induced (STS-62) vertebral bone loss in ovariectomized rats is associated with increased bone marrow adiposity and no change in bone formation](https://doi.org/10.26030/kb2k-2150) (Keune, 2016)

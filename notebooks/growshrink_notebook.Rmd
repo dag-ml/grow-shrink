@@ -5,8 +5,6 @@ output: html_notebook
 
 This R notebook aims to explore the potential applications of [grow-shrink](https://doi.org/10.48550/arXiv.1407.8088)
 
-This notebook utilizes the bnlearn library for its implementation of growshrink.
-
 ```{r}
 library(dplyr)
 library(bnlearn)
@@ -15,43 +13,129 @@ library(psych)
 ```
 
 Getting the data from csv files stored locally on device
+```{r}
+# If the user has downloaded the data locally
+data_dir <- "../data"
+```
 
 ```{r}
 # Dubee
-path_lsds_15 <- file.choose()
-data_lsds_15 <- read.csv(path_lsds_15, header = TRUE)
+if(dir.exists(data_dir))
+{
+  path_lsds_15 <- file.path(data_dir, "LSDS-15_microCT_alwoodTRANSFORMED.csv")
+  data_lsds_15 <- read.csv(path_lsds_15, header = TRUE)
+  print("Loaded from existing file")
+} else
+{
+  path_lsds_15 <- file.choose()
+  data_lsds_15 <- read.csv(path_lsds_15, header = TRUE)
+}
 ```
 
 ```{r}
 # Keune 2015
-path_lsds_9 <- file.choose()
-data_lsds_9 <- read.csv(path_lsds_9, header = TRUE)
+if(dir.exists(data_dir))
+{
+  path_lsds_9 <- file.path(data_dir, "LSDS-9_microCT_turnerTRANSFORMED.csv")
+  data_lsds_9 <- read.csv(path_lsds_9, header = TRUE)
+  print("Loaded from existing file")
+} else
+{
+  path_lsds_9 <- file.choose()
+  data_lsds_9 <- read.csv(path_lsds_15, header = TRUE)
+}
 ```
-
+Keune 2016 is only available as an excel spreadsheet. Open it and export it as
+a csv file before running this cell. Be sure to save it in the same directory.
 ```{r}
 # Keune 2016
-path_lsds_30 <- file.choose()
-data_lsds_30 <- read.csv(path_lsds_30, header = TRUE)
+if(dir.exists(data_dir))
+{
+  path_lsds_30 <- file.path(data_dir, "LSDS-30_histomorphometry_turnerTRANSFORMED.csv")
+  data_lsds_30 <- read.csv(path_lsds_30, header = TRUE)
+  print("Loaded from existing file")
+} else
+{
+  path_lsds_30 <- file.choose()
+  data_lsds_30 <- read.csv(path_lsds_30, header = TRUE)
+}
 ```
 
 ```{r}
 # Ko 2020 1 of 2
-path_lsds_41 <- file.choose()
-data_lsds41 <- read.csv(path_lsds_41, header = TRUE)
+if(dir.exists(data_dir))
+{
+  path_lsds_41 <- file.path(data_dir, "LSDS-41_peripheral_quantitative_computed_tomography_pQCT_LSDS-41_pQCT_KoTRANSFORMED.csv")
+  data_lsds41 <- read.csv(path_lsds_41, header = TRUE)
+  print("Loaded from existing file")
+} else
+{
+  path_lsds_41 <- file.choose()
+  data_lsds41 <- read.csv(path_lsds_41, header = TRUE)
+}
 ```
+
+Ko 2020 (2/2) contains 3 datasets. If you do not follow the data structure suggested
+by the README.md, be sure to select them in order:
+
+1. microCT
+2. Histomorphometry
+3. Bone Biomechanical 
+
+Note: The microCT dataset contains an extra heading for the columns that groups
+them together. We will take note of that here and discard the row for now:
+
+### Femoral Trabecular Bone
+- `Total_volume_TV_mm3`
+- `Bone_volume_BV_mm3`	
+- `Bone_volume_BV_per_total_volume_TV_mm4_per_mm4`	
+- `Connectivity_density_one_per_mm3`	
+- `Structure_model_index_SMI`	
+- `Trabecular_number_TbN_one_per_millimeter`	
+- `Trabecular_thickness_TbTh_millimeter`	
+- `Trabecular_separation_TbSp_millimeter`	
+- `Bone_mineral_density_BMD_mg_per_cubed_centimeter`
+
+
+### Femoral Midshaft Cortical Bone
+- `Cortical_thickness_CtTh_millimeter`	
+- `Cortical_tissue_mineral_density_CtTMD_milligram_HA_per_cubed_centimeter`	
+- `Polar_moment_of_intertia_pMOI_mm4`	
+- `Maximum_moment_of_intertia_Imax_mm4`	
+- `Minimum_moment_of_intertia_Imin_mm4`	
+- `Cortical_bone_area_BA_mm2`	
+- `Total_cross_sectional_area_TtAr_mm2`	
+- `Cortical_bone_area_fraction_percent`
 
 ```{r}
 # Ko 2020 2 of 2
-# micro ct
-path_mct_lsds_40 <- file.choose()
-# histomorphometry
-path_hist_lsds_40 <- file.choose()
-# bone
-path_bone_lsds_40 <- file.choose()
+if(dir.exists(data_dir))
+{
+  path_mct_lsds_40 <- file.path(data_dir, "LSDS-40_microCT_LSDS-40_microCT_KoTRANSFORMED.csv")
+  data_mct_lsds_40 <- read.csv(path_mct_lsds_40, header = TRUE, skip = 1)
+  print("Loaded Ko - microCT from existing file")
+  
+  path_hist_lsds_40 <- file.path(data_dir, "LSDS-40_histomorphometry_LSDS-40_histomorphometry_KoTRANSFORMED.csv")
+  data_hist_lsds_40 <- read.csv(path_hist_lsds_40, header = TRUE)
+  print("Loaded Ko - histomorphometry from existing file")
+  
+  path_bone_lsds_40 <- file.path(data_dir, "LSDS-40_Bone_Biomechanical_LDSD-40_biomechanical_KoTRANSFORMED.csv")
+  data_bone_lsds_40 <- read.csv(path_bone_lsds_40, header = TRUE)
+  print("Loaded Ko - Bone Biomechanical from existing file")  
+} else
+{
+  # micro ct
+  path_mct_lsds_40 <- file.choose()
+  # histomorphometry
+  path_hist_lsds_40 <- file.choose()
+  # bone
+  path_bone_lsds_40 <- file.choose()
+  
+  data_mct_lsds_40 <- read.csv(path_mct_lsds_40, header = TRUE)
+  data_hist_lsds_40 <- read.csv(path_hist_lsds_40, header = TRUE)
+  data_bone_lsds_40 <- read.csv(path_bone_lsds_40, header = TRUE)
+}
 
-data_mct_lsds_40 <- read.csv(path_mct_lsds_40, header = TRUE)
-data_hist_lsds_40 <- read.csv(path_hist_lsds_40, header = TRUE)
-data_bone_lsds_40 <- read.csv(path_bone_lsds_40, header = TRUE)
 ```
 
 For this notebook, we will be looking at the Dubee, Keune, and Ko (2/2) datasets.
@@ -59,9 +143,34 @@ These were selected because they were the ones used in the 2022 publication.
 Ko (1/2) was not included because it was taken from living samples over a period of time,
 which is more complicated to validate than the single measurements taken in the mCT data.
 
+For the Ko dataset, we need to convert the scientific notation from the relevant columns
 ```{r}
-data_lsds_15
+# Remove rows with asterisk (*) in columns 4 to 15
+data_hist_lsds_40 <- data_hist_lsds_40 %>%
+  filter_at(vars(7:17), ~!grepl("\\*", .))
+
+# Convert to numeric
+data_hist_lsds_40 <- data_hist_lsds_40 %>%
+  dplyr::mutate_at(vars(7:17), ~as.numeric(as.character(.)))
 ```
+
+#TODO 
+For the Keune 2015 dataset, we have a lot of different values that are missing.
+This could be due to a different bone being the examined object.
+- `cancellous_metaphysis_Tb_N_1per_mm` (Keune 2015, data_lsds_9)
+- `cancellous_epiphysis_Tb_N_1per_mm` (Keune 2015, data_lsds_9)
+- `cancellous_epiphysis_Tb_Sp_micrometer` (Keune 2015, data_lsds_9)
+- `cancellous_metaphysis_Tb_Sp_micrometer` (Keune 2015, data_lsds_9)
+```{r}
+# Placeholder
+```
+
+#TODO 
+For the Ko Dataset, we need to merge the files and handle missing values
+```{r}
+# Placeholder
+```
+
 
 ```{r}
 data_lsds_9
@@ -85,18 +194,6 @@ data_hist_lsds_40
 ```{r}
 data_bone_lsds_40
 ```
-
-
-To start, remove the columns that are not numeric data (uid & filename)
-```{r}
-data_lsds_15 <- subset(data_lsds_15, select = -(1:2))
-data_lsds_9 <- subset(data_lsds_9, select = -(1:2))
-data_lsds_30 <- subset(data_lsds_30, select = -(1:2))
-data_mct_lsds_40 <- subset(data_mct_lsds_40, select = -(1:2))
-data_hist_lsds_40 <- subset(data_hist_lsds_40, select = -(1:2))
-data_bone_lsds_40 <- subset(data_bone_lsds_40, select = -(1:2))
-```
-
 
 # Composite Variables
 Next we need to group the columns provided in the CSV file into composite variables.
@@ -126,8 +223,8 @@ The publication laid out the following composite variables
 - `trabecular_thickness_mm` (Dubee, data_lsds_15)
 - `percent_bone_volume_bvtv_percent` (Dubee, data_lsds_15)
 - `Bone_volume_BVTV_percent` (Keune 2016, data_lsds30)
-- Bone mineral content (DXA)? (Keune 2015, data_lsds_9)
-- Bone mineral density (DXA)? (Keune 2015, data_lsds_9)
+- Bone mineral content (DXA)? (REMOVED FROM TRANSFORMED Keune 2015, data_lsds_9)
+- Bone mineral density (DXA)? (REMOVED FROM TRANSFORMED Keune 2015, data_lsds_9)
 - `Bone_volume_BV_per_total_volume_TV_mm4_per_mm4` (Ko, data_mct_lsds_40)
 - `Bone_mineral_density_BMD_mg_per_cubed_centimeter` (Ko, data_mct_lsds_40)
 - `Trabecular_number_TbN_one_per_millimeter` (Ko, data_mct_lsds_40)
@@ -152,18 +249,128 @@ The publication laid out the following composite variables
 2. Run PCA using the variables listed above to make composite variable
 3. Adjust the rest of the notebook to use composite variables df
 ```{r}
-# 1 Placeholder - Remove columns
+# Dubee
+dubee_gs_input <- data.frame(bone_mass = rep(NA, 37))
 
-# 2 Placeholder - Run PCA to make df_composite
+# Bone Mass
+dubee_bone_mass <- data_lsds_15[, c("trabecular_thickness_mm", 
+                                    "percent_bone_volume_bvtv_percent")]
+dubee_composite_bm <- psych::pca(r = dubee_bone_mass, nfactors = 1, scores = TRUE)
+dubee_gs_input$bone_mass <- BiocGenerics::as.vector(dubee_composite_bm$scores)
+
+# Trabecular Architecture
+dubee_tb_arch <- data_lsds_15[, c("trabecular_number_1_by_mm",
+                                  "trabecular_separation_mm")]
+dubee_composite_tba <- psych::pca(r = dubee_tb_arch, nfactors = 1, scores = TRUE)
+dubee_gs_input$trabec_arch <- BiocGenerics::as.vector(dubee_composite_tba$scores)
 ```
 
+#TODO
+Revisit after handling null values
+```{r}
+# Keune 2015
+keune_2015_gs_input <- data.frame(trabec_arch = rep(NA, 102))
 
-Now let's run growshrink on the dataset.
+# Trabecular Architecture
+keune_2015_tba <- data_lsds_9[, c("cancellous_metaphysis_Tb_N_1per_mm",
+                                  "cancellous_epiphysis_Tb_N_1per_mm",
+                                  "cancellous_epiphysis_Tb_Sp_micrometer",
+                                  "cancellous_metaphysis_Tb_Sp_micrometer")]
+keune_2015_composite_tba <- psych::pca(r = keune_2015_tba, nfactors = 1, scores = TRUE)
+keune_2015_gs_input$trabech_arch <- BiocGenerics::as.vector(keune_2015_composite_tba$scores)
+```
+
 
 ```{r}
-dag <- bnlearn::gs(data_lsds_15)
+# Keune 2016
+keune_2016_gs_input <- data.frame(bone_formation = rep(NA, 22))
+
+# Bone Formation
+keune_2016_bf <- data_lsds_30[, c("Ceased_bone_formation_CeasedBF_percent",
+                                  "Mineral_apposition_rate_MAR_micrometers_per_day")]
+keune_2016_composite_bf <- psych::pca(r = keune_2016_bf, nfactors = 1, scores = TRUE)
+keune_2016_gs_input$bone_formation <- BiocGenerics::as.vector(keune_2016_composite_bf$scores)
+
+# Bone Resorption
+keune_2016_br <- data_lsds_30[, c("Label_length_LL_millimeter_per_millimeters_squared",
+                                  "Osteoclast_perimeter_OsCperi_percent")]
+keune_2016_composite_br <- psych::pca(r = keune_2016_br, nfactors = 1, scores = TRUE)
+keune_2016_gs_input$bone_resorption <- BiocGenerics::as.vector(keune_2016_composite_br$scores)
+
+# Bone Mass (is PCA necessary? Uncomment pca line if needed) 
+keune_2016_bm <- data_lsds_30[, c("Bone_volume_BVTV_percent")]
+# keune_2016_composite_bm <- psych::pca(r = keune_2016_bm, nfactors = 1, scores = TRUE)
+keune_2016_gs_input$bone_mass <- BiocGenerics::as.vector(keune_2016_bm)
+
 ```
 
+#TODO
+Revisit after merging files
+```{r}
+# Ko 2020 (2/2) -- Histomorphometry
+hist_ko_2_gs_input <- data.frame(bone_formation = rep(NA, 51))
+
+# Bone Formation
+ko_2_bf <- data_hist_lsds_40[, c("Mineralized_surface_MS_per_bone_surface_BS_percent",
+                                 "Bone_formation_rate_BFR_per_bone_surface_BS_percent")]
+ko_2_composite_bf <- psych::pca(r = ko_2_bf, nfactors = 1, scores = TRUE)
+hist_ko_2_gs_input$bone_formation <- BiocGenerics::as.vector(ko_2_composite_bf$scores) 
+
+# Bone Resorption (only 1 variable, is PCA necessary?)
+ko_2_br <- data_hist_lsds_40[, c("Osteoclast_surface_OcS_per_bone_surface_BS_percent")]
+# ko_2_composite_br <- psych::pca(r = ko_2_br, nfactors = 1, scores = TRUE)
+hist_ko_2_gs_input$bone_resorption <- BiocGenerics::as.vector(ko_2_br)
+
+# Ko 2020 (2/2) -- microCT & bone?
+mct_ko_2_gs_input <- data.frame(bone_mass = rep(NA, 140))
+# Bone Mass
+ko_2_bm <- data_mct_lsds_40[, c("Bone_volume_BV_per_total_volume_TV_mm4_per_mm4",
+                                 "Bone_volume_BV_per_total_volume_TV_mm4_per_mm4",
+                                 "Trabecular_number_TbN_one_per_millimeter")]
+ko_2_composite_bm <- psych::pca(r = ko_2_bm, nfactors = 1, scores = TRUE)
+mct_ko_2_gs_input$bone_mass <- BiocGenerics::as.vector(ko_2_composite_bm$scores)
+
+# Trabecular Architecture
+ko_2_tba <- data_mct_lsds_40[, c("Trabecular_number_TbN_one_per_millimeter",
+                                  "Trabecular_separation_TbSp_millimeter")]
+ko_2_composite_tba <- psych::pca(r = ko_2_tba, nfactors = 1, scores = TRUE)
+mct_ko_2_gs_input$trabec_arch <- BiocGenerics::as.vector(ko_2_composite_tba$scores)
+
+# Bone Strength
+ko_2_bs <- data_bone_lsds_40[, c("maximum_load_N_newtons",
+                                 "failure_load_newtons")]
+ko_2_composite_bs <- psych::pca(r = ko_2_bs, nfactors = 1, scores = TRUE)
+mct_ko_2_gs_input$bone_strength <- BiocGenerics::as.vector(ko_2_composite_bs$scores) 
+```
+Spooky warning... we should review the data before going forward.
+
+
+Here are the composite variables as their own dataframes. We had to separate
+the mct/bone from the hist datasets in Ko due to a large difference in sample size
+```{r}
+dubee_gs_input
+```
+```{r}
+keune_2015_gs_input
+```
+```{r}
+keune_2016_gs_input
+```
+```{r}
+hist_ko_2_gs_input
+```
+```{r}
+mct_ko_2_gs_input
+```
+
+```{r}
+dubee_dag <- bnlearn::gs(dubee_gs_input)
+keune2015_dag <- bnlearn::gs(keune_2015_gs_input)
+keune2016_dag <- bnlearn::gs(keune_2016_gs_input)
+ko_hist_dag <- bnlearn::gs(hist_ko_2_gs_input)
+ko_mct_bone_dag <- bnlearn::gs(hist_ko_2_gs_input)
+```
+^^^ Previous cell output needs to be checked after handling TODO items (7/15)
 
 ```{r}
 graph_dag <- bnlearn::as.graphNEL(dag)
