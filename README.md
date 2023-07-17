@@ -4,7 +4,9 @@
 Building off of the findings of ["Validating Causal Diagrams of Human Health Risks for Spaceflight: An Example Using Bone Data from Rodents,"](https://www.mdpi.com/1813442) this project explores, in collaboration with the authors of this study, to explore Machine Learning approaches to generate Directed Acyclic Graphs using the [Grow-Shrink Algorithm](https://doi.org/10.48550/arXiv.1407.8088).
 
 ## Getting Started 👩‍🚀👨‍🚀
-You can get started by cloning the repository and running `notebooks/growshrink_notebook.Rmd` in RStudio or VS Code. The file `notebooks/growshrink_notebook.nb.html` can also be downloaded to read through the file as a learning resource in your web browser.
+You can get started by cloning the repository and running `notebooks/growshrink_notebook.Rmd` in RStudio or VS Code. The file `notebooks/growshrink_notebook.nb.html` can also be downloaded to read through the file as a learning resource in your web browser. 
+
+The output graphs of Grow-Shrink are available in the `graphs/` directory.
 
 ## Objectives/Road Map 🚀
 - [ ] Generate a DAG that can be validated or invalidated by a domain expert
@@ -28,7 +30,7 @@ All data from this project is publicly available through [NASA's Open Science Da
 
 ## Dependencies 💾
 The following libraries are used in the notebooks associated with the project
-- dplyr
-- bnlearn
-- Rgraphviz
-- psych
+- [dplyr](https://dplyr.tidyverse.org/)
+- [bnlearn](https://www.bnlearn.com/)
+- [Rgraphviz](http://bioconductor.org/packages/release/bioc/html/Rgraphviz.html)
+- [psych](https://cran.r-project.org/web/packages/psych/index.html)

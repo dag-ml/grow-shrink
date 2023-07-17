@@ -45,6 +45,7 @@ if(dir.exists(data_dir))
   data_lsds_9 <- read.csv(path_lsds_15, header = TRUE)
 }
 ```
+
 Keune 2016 is only available as an excel spreadsheet. Open it and export it as
 a csv file before running this cell. Be sure to save it in the same directory.
 ```{r}
@@ -165,12 +166,57 @@ This could be due to a different bone being the examined object.
 # Placeholder
 ```
 
-#TODO 
-For the Ko Dataset, we need to merge the files and handle missing values
+Subset columns
 ```{r}
-# Placeholder
+data_bone_lsds_40 <- data_bone_lsds_40[,c(1,3:4,8:10)]
+data_hist_lsds_40 <- data_hist_lsds_40[!(is.na(data_hist_lsds_40$Source.Name)),c(1,7:11)]
+data_mct_lsds_40 <- data_mct_lsds_40[,c(1,10,13:17)]
 ```
 
+Rename columns
+```{r}
+names(data_bone_lsds_40) <- c("ID","PWB","duration","stiffness","load.max","load.fail")
+names(data_hist_lsds_40) <- c("ID","OBSBS","OCSBS",'MSBS',"MAR","BFRBS")
+names(data_mct_lsds_40) <- c("ID","BVTV","trab.num","trab.thick","trab.sep","BMD","cort.thick")
+
+data_bone_lsds_40
+data_hist_lsds_40
+data_mct_lsds_40
+```
+
+Create indicators of source file
+```{r}
+data_bone_lsds_40$data_bone_lsds_40 <- 1
+data_hist_lsds_40$data_hist_lsds_40 <- 1
+data_mct_lsds_40$data_mct_lsds_40 <- 1
+```
+
+```{r}
+data_hist_lsds_40
+```
+
+
+Merge files
+```{r}
+# Merge files
+ko12   <- merge(data_bone_lsds_40,data_hist_lsds_40,by="ID",all.x=T,all.y=T)
+ko123  <- merge(ko12,data_mct_lsds_40,by="ID",all=T)
+```
+
+Fill in missing indicators with 0
+```{r}
+ko123$data_bone_lsds_40[is.na(ko12$data_bone_lsds_40)] <-0
+ko123$data_hist_lsds_40[is.na(ko12$data_hist_lsds_40)] <-0
+ko123$data_mct_lsds_40[is.na(ko12$data_mct_lsds_40)] <-0
+```
+
+Keep the rows we need
+```{r}
+ko <- ko123[!(is.na(ko123$stiffness)),]
+  ko$unload    <- 0*(ko$PWB=='PWB100')+30*(ko$PWB=="PWB70")+60*(ko$PWB=="PWB40")+80*(ko$PWB =="PWB20")
+  ko$dur   <- 7*(ko$duration=='1wk')+14*(ko$duration=='2wk')+28*(ko$duration=='4wk')
+ko <- ko[,c('BVTV','BMD','trab.sep','trab.num','MSBS','OCSBS','BFRBS','load.max','load.fail','unload','dur')]
+```
 
 ```{r}
 data_lsds_9
@@ -185,17 +231,7 @@ data_lsds_30
 ```
 
 ```{r}
-data_mct_lsds_40
-```
-
-
-```{r}
-data_hist_lsds_40
-```
-
-
-```{r}
-data_bone_lsds_40
+ko
 ```
 
 # Composite Variables
@@ -245,12 +281,6 @@ The publication laid out the following composite variables
 ### Bone Strength
 - `maximum_load_N_newtons` (Ko, data_bone_lsds_40)
 - `failure_load_newtons` (Ko, data_bone_lsds_40)
-
-# TODO
-0. Find the columns that map to the DXA data from Keune 2015
-1. Remove columns not specified above
-2. Run PCA using the variables listed above to make composite variable
-3. Adjust the rest of the notebook to use composite variables df
 ```{r}
 # Dubee
 dubee_gs_input <- data.frame(treatment = rep(NA, 37))
@@ -290,7 +320,10 @@ keune_2015_gs_input$trabech_arch <- BiocGenerics::as.vector(keune_2015_composite
 
 ```{r}
 # Keune 2016
-keune_2016_gs_input <- data.frame(bone_formation = rep(NA, 22))
+keune_2016_gs_input <- data.frame(treatment = rep(NA, 22))
+
+# Treatment
+keune_2016_gs_input$treatment <- as.factor(data_lsds_30$Spaceflight)
 
 # Bone Formation
 keune_2016_bf <- data_lsds_30[, c("Ceased_bone_formation_CeasedBF_percent",
@@ -311,49 +344,28 @@ keune_2016_gs_input$bone_mass <- BiocGenerics::as.vector(keune_2016_bm)
 
 ```
 
-#TODO
-Revisit after merging files
 ```{r}
-# Ko 2020 (2/2) -- Histomorphometry
-hist_ko_2_gs_input <- data.frame(bone_formation = rep(NA, 51))
+# Ko 2020 (2/2)
+mass <- pca(r=ko[,c("BVTV","BMD")], nfactors = 1, scores = T)
+trab <- pca(r=ko[,c("trab.sep","trab.num")], nfactors = 1, scores = T)
+form   <- pca(r=ko[,c("MSBS","BFRBS")], nfactors = 1, scores = T)
+stren <- pca(r=ko[,c("load.max","load.fail")], nfactors = 1, scores = T)
 
-# Bone Formation
-ko_2_bf <- data_hist_lsds_40[, c("Mineralized_surface_MS_per_bone_surface_BS_percent",
-                                 "Bone_formation_rate_BFR_per_bone_surface_BS_percent")]
-ko_2_composite_bf <- psych::pca(r = ko_2_bf, nfactors = 1, scores = TRUE)
-hist_ko_2_gs_input$bone_formation <- BiocGenerics::as.vector(ko_2_composite_bf$scores) 
+ko$mass <- as.vector(mass$scores[,1])
+ko$trab <- as.vector(trab$scores[,1])
+ko$stren <- as.vector(stren$scores[,1])
+ko$expose <- ((ko$unload*ko$dur)-mean(ko$unload*ko$dur))/(sd(ko$unload*ko$dur))
+ko$resorp <- scale(ko$OCSBS)
+ko$form   <- as.vector(form$scores)
 
-# Bone Resorption (only 1 variable, is PCA necessary?)
-ko_2_br <- data_hist_lsds_40[, c("Osteoclast_surface_OcS_per_bone_surface_BS_percent")]
-# ko_2_composite_br <- psych::pca(r = ko_2_br, nfactors = 1, scores = TRUE)
-hist_ko_2_gs_input$bone_resorption <- BiocGenerics::as.vector(ko_2_br)
 
-# Ko 2020 (2/2) -- microCT & bone?
-mct_ko_2_gs_input <- data.frame(bone_mass = rep(NA, 140))
-# Bone Mass
-ko_2_bm <- data_mct_lsds_40[, c("Bone_volume_BV_per_total_volume_TV_mm4_per_mm4",
-                                 "Bone_volume_BV_per_total_volume_TV_mm4_per_mm4",
-                                 "Trabecular_number_TbN_one_per_millimeter")]
-ko_2_composite_bm <- psych::pca(r = ko_2_bm, nfactors = 1, scores = TRUE)
-mct_ko_2_gs_input$bone_mass <- BiocGenerics::as.vector(ko_2_composite_bm$scores)
-
-# Trabecular Architecture
-ko_2_tba <- data_mct_lsds_40[, c("Trabecular_number_TbN_one_per_millimeter",
-                                  "Trabecular_separation_TbSp_millimeter")]
-ko_2_composite_tba <- psych::pca(r = ko_2_tba, nfactors = 1, scores = TRUE)
-mct_ko_2_gs_input$trabec_arch <- BiocGenerics::as.vector(ko_2_composite_tba$scores)
-
-# Bone Strength
-ko_2_bs <- data_bone_lsds_40[, c("maximum_load_N_newtons",
-                                 "failure_load_newtons")]
-ko_2_composite_bs <- psych::pca(r = ko_2_bs, nfactors = 1, scores = TRUE)
-mct_ko_2_gs_input$bone_strength <- BiocGenerics::as.vector(ko_2_composite_bs$scores) 
+ko <- ko[,c("unload","dur","expose","mass","trab","stren","resorp","form")]
 ```
-Spooky warning... we should review the data before going forward.
 
 
-Here are the composite variables as their own dataframes. We had to separate
-the mct/bone from the hist datasets in Ko due to a large difference in sample size
+
+Here are the composite variables as their own dataframes. They are ready to be
+fed into the Grow-Shrink Algorithm!
 ```{r}
 dubee_gs_input
 ```
@@ -367,10 +379,7 @@ keune_2015_gs_input
 keune_2016_gs_input
 ```
 ```{r}
-hist_ko_2_gs_input
-```
-```{r}
-mct_ko_2_gs_input
+ko
 ```
 
 ```{r}
@@ -383,13 +392,11 @@ keune2015_dag <- bnlearn::gs(keune_2015_gs_input)
 keune2016_dag <- bnlearn::gs(keune_2016_gs_input)
 ```
 ```{r}
-ko_hist_dag <- bnlearn::gs(hist_ko_2_gs_input)
+ko_dag <- bnlearn::gs(ko)
 ```
-```{r}
-ko_mct_bone_dag <- bnlearn::gs(hist_ko_2_gs_input)
-```
-^^^ Previous cell output needs to be checked after handling TODO items (7/15)
 
+
+# Dubee DAG
 ```{r}
 graph_dag <- bnlearn::as.graphNEL(dubee_dag)
 
@@ -404,23 +411,36 @@ graph_dag <- bnlearn::as.graphNEL(cex_dubee_dag)
 plot(graph_dag)
 text(x = 250, y = 500, labels = "Consistent extension of Dubee DAG", font = 4)
 ```
-Experimenting with leaving string and converting all to factors
+# Keune 2016 DAG
 ```{r}
-
-```
-
-Now checking what it looks like without the enumeration of the Factor Value
-```{r}
-data_lsds_15 <- subset(data_lsds_15, select = -(1:1))
-data_lsds_15
-```
-```{r}
-dag <- bnlearn::gs(data_lsds_15)
-```
-
-
-```{r}
-graph_dag <- bnlearn::as.graphNEL(dag)
+graph_dag <- bnlearn::as.graphNEL(keune2016_dag)
 
 plot(graph_dag)
+text(x = 100, y = 500, labels = "Keune 2016 DAG", font = 4)
+
+```
+
+```{r}
+cex_k16_dag <- bnlearn::cextend(x = keune2016_dag, strict = TRUE)
+graph_dag <- bnlearn::as.graphNEL(cex_k16_dag)
+
+plot(graph_dag)
+text(x = 105, y = 500, labels = "Consistent extension of Keune 2016 DAG", font = 4)
+```
+
+# Ko (2/2) DAG
+```{r}
+graph_dag <- bnlearn::as.graphNEL(ko_dag)
+
+plot(graph_dag)
+text(x = 100, y = 500, labels = "Ko (2/2) DAG", font = 4)
+
+```
+
+```{r}
+cex_ko_dag <- bnlearn::cextend(x = ko_dag, strict = TRUE)
+graph_dag <- bnlearn::as.graphNEL(cex_ko_dag)
+
+plot(graph_dag)
+text(x = 105, y = 500, labels = "Consistent extension of Ko (2/2) DAG", font = 4)
 ```
