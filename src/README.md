@@ -1,5 +1,6 @@
-# Replicating Results with R Script Files
-Each of the datasets mentioned in the repository level README.md will be accessible with random seeds set for reproducing results.
+# Replicating Results with R Script Files 📁
+- `dag/` : For files used to produce Directed Acyclic Graphs using the Context-Specific Grow-Shrink Algorithm. Each dataset will have its own file.
+- `vis/` : For files used to plot, with t-distributed Stochastic Neighbor Embedding (t-SNE), the data before and after preprocessing is done to make composite variables using Principal Component Analysis (PCA).
 
 ## TSNE Visualization of Structures in Datasets 📊
 Filenames prefixed with `tsne` are meant to read in data and create 2D plots to examine any significant clustering in the data.
@@ -13,4 +14,5 @@ PCA is already performed on some of the variables to create composite variables 
 ### Perplexity Value in TSNE
 The perplexity values used in these implementations are either 5 or 10. These are relatively small values, 
 and were a necessary adjustment because the dataset is too small for a perplexity greater than 12 (it will likely result in a compiler error).
+
 A lower perplexity value influences TSNE by adjusting its focus on preserving local structures, which intuitively seems like a valid approach due to our dataset size.

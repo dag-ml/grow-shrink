@@ -6,7 +6,7 @@ library(psych)
 set.seed(123)
 
 # If the user has downloaded the data locally
-data_dir <- "../data"
+data_dir <- "../../data"
 
 if(dir.exists(data_dir))
 {
