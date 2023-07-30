@@ -14,6 +14,3 @@ PCA is already performed on some of the variables to create composite variables 
 The perplexity values used in these implementations are either 5 or 10. These are relatively small values, 
 and were a necessary adjustment because the dataset is too small for a perplexity greater than 12 (it will likely result in a compiler error).
 A lower perplexity value influences TSNE by adjusting its focus on preserving local structures, which intuitively seems like a valid approach due to our dataset size.
-
-## Authors 📚
-- Jake Campbell
