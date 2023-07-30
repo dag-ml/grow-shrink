@@ -6,9 +6,11 @@ library(dplyr)      # various helper functions
 library(bnlearn)    # gs, some graph utilities
 library(Rgraphviz)  # graph utilities
 library(psych)      # pca
+library(Rtsne)
 
+set.seed(123)
 # When loading from local storage
-data_dir <- "../data"
+data_dir <- "../../data"
 
 # Ko 2020 2 of 2
 if(dir.exists(data_dir))  # Automatically load data
@@ -67,45 +69,36 @@ ko123$data_mct_lsds_40[is.na(ko12$data_mct_lsds_40)] <-0
 # Keep rows we need and remove NA entries
 ko <-  ko123[!(is.na(ko123$stiffness)),]
 ko$unload <- 0*(ko$PWB=='PWB100')+30*(ko$PWB=="PWB70")+60*(ko$PWB=="PWB40")+80*(ko$PWB =="PWB20")
-ko$dur <- 28*(ko$duration == "4wk")
+ko$dur   <- 7*(ko$duration=='1wk')+14*(ko$duration=='2wk')+28*(ko$duration=='4wk')
 ko <- ko[,c('BVTV','BMD','trab.sep','trab.num','MSBS','OCSBS','BFRBS','load.max','load.fail','unload','dur')]
-ko <- na.omit(ko)
-
-# Keep only 4-week duration animals
-ko <- ko[ko$dur == 28, ]
 
 # Transform to numeric
 ko$BVTV <- as.numeric(as.character(ko$BVTV))
 ko$BMD <- as.numeric(as.character(ko$BMD))
 ko$trab.sep <- as.numeric(as.character(ko$trab.sep))
 ko$trab.num <- as.numeric(as.character(ko$trab.num))
-# Convert to numeric
+
+# Convert to numeric (fool-proof version)
 ko <- ko %>%
   dplyr::mutate_at(vars(1:11), ~as.numeric(as.character(.)))
-print(ko)
-# Normalize between -1 and 1
-# Find the minimum and maximum values in the dataframe
-ko_min <- apply(ko, 2, min)
-ko_max <- apply(ko, 2, max)
+ko <- na.omit(ko)
 
-# Define the desired range for normalization (-1 and 1)
-new_min <- 0
-new_max <- 1
+# TSNE without PCA, no composite variables (UNLOAD)
+tsne_out <- Rtsne::Rtsne(ko, perplexity=10, pca = FALSE)
+class_colors <- ifelse(ko$unload < 60, "blue", "red")
+plot(tsne_out$Y,col=class_colors,asp=1,
+     main = "Ko TSNE on Unload, perplexity = 10", xlab = "X", ylab = "Y")
+legend("bottomright", legend = c("unload < 60", "unload >= 60"), col = c("blue", "red"), pch = 1)
 
-# Perform Min-Max scaling for each column in the dataframe
-for (col in colnames(ko)) {
-  # Check if X_max - X_min is zero for the current column
-  if (ko_max[col] - ko_min[col] != 0) {
-    ko[, col] <- ((ko[, col] - ko_min[col]) / (ko_max[col] - ko_min[col])) * (new_max - new_min) + new_min
-  } else {
-    # Handle the case where all values are the same in the column
-    # Set all values to a constant value (e.g., 0 or any other value you prefer)
-    ko[, col] <- 1
-  }
-}
+# TSNE without PCA, no composite variables (DURATION)
+tsne_out <- Rtsne::Rtsne(ko, perplexity=10, pca = FALSE)
+class_colors <- ifelse(ko$dur < 28, "blue", "red")
+plot(tsne_out$Y,col=class_colors,asp=1,
+     main = "Ko TSNE on Duration, perplexity = 10", xlab = "X", ylab = "Y")
+legend("topright", legend = c("duration < 4 weeks", "duration = 4 weeks"), 
+       col = c("blue", "red"), pch = 1)
 
-print(ko)
-# PCA
+# PCA to create composite variables
 mass <- pca(r=ko[,c("BVTV","BMD")], nfactors = 1, scores = T)
 trab <- pca(r=ko[,c("trab.sep","trab.num")], nfactors = 1, scores = T)
 form   <- pca(r=ko[,c("MSBS","BFRBS")], nfactors = 1, scores = T)
@@ -122,10 +115,17 @@ ko$form   <- as.vector(form$scores)
 ko <- ko[,c("unload","dur","expose","mass","trab","stren","resorp","form")]
 rm(list=c("mass","trab","form","stren"))
 
-# Grow-Shrink
-ko_dag <- bnlearn::gs(ko)
-graph_dag <- bnlearn::as.graphNEL(ko_dag)
+# TSNE without PCA, using Composite Variables (UNLOAD)
+tsne_out <- Rtsne::Rtsne(ko, perplexity=5, pca = FALSE)
+class_colors <- ifelse(ko$unload < 60, "blue", "red")
+plot(tsne_out$Y,col=class_colors,asp=1,
+     main = "Ko TSNE on Unload with Composite Variables, perplexity = 10", xlab = "X", ylab = "Y")
+legend("bottomright", legend = c("unload < 60", "unload >= 60"), col = c("blue", "red"), pch = 1)
 
-# Plotting the DAG
-plot(graph_dag)
-text(x = 100, y = 500, labels = "Ko (2/2) DAG", font = 4)
+# TSNE without PCA, using composite variables (DURATION)
+tsne_out <- Rtsne::Rtsne(ko, perplexity=5, pca = FALSE)
+class_colors <- ifelse(ko$dur < 28, "blue", "red")
+plot(tsne_out$Y,col=class_colors,asp=1,
+     main = "Ko TSNE on Duration with Composite Variables, perplexity = 10", xlab = "X", ylab = "Y")
+legend("bottomright", legend = c("duration < 4 weeks", "duration = 4 weeks"), 
+       col = c("blue", "red"), pch = 1)
