@@ -6,7 +6,7 @@ Building off of the findings of ["Validating Causal Diagrams of Human Health Ris
 ## Getting Started 👩‍🚀👨‍🚀
 You can get started by cloning the repository and running `notebooks/growshrink_notebook.Rmd` in RStudio or VS Code. The file `notebooks/growshrink_notebook.nb.html` can also be downloaded to read through the file as a learning resource in your web browser. 
 
-The output graphs of Grow-Shrink are available in the `graphs/` directory.
+The output graphs of Grow-Shrink, and an Exploratory Data Analysis are available in the `graphs/` directory.
 
 ## Objectives/Road Map 🚀
 - [ ] Generate a DAG that can be validated or invalidated by a domain expert
